@@ -1,3 +1,4 @@
+import io
 import numpy as np 
 import pandas as pd 
 # Used to grab the stock prices, with yahoo 
@@ -7,14 +8,13 @@ from datetime import datetime
 import matplotlib.pyplot as plt 
 import seaborn
 from pandas_datareader import data as pdr
+from datetime import timedelta
 yf.pdr_override() # <== that's all it takes :-)
 
 
-def build():
-    start = datetime(2023, 1, 1)
+def build(numDays, symbols_list):
     end = datetime.today()
-    symbols_list = ['AAPL', 'F', 'AAL', 'AMZN', 'GOOGL', 'GE', 'TSLA', 'IBM', '^VIX']
-    symbols_list.append('VIX')
+    start = end - timedelta(days=numDays)
     #array to store prices
     symbols=[]
 
@@ -39,6 +39,10 @@ def build():
     #del corr_df.index.name
     corr_df.head(10)
 
+    plt.title(f'{numDays} Day Correlation')
     plt.figure(figsize=(13, 8))
     seaborn.heatmap(corr_df, annot=True, cmap='RdYlGn')
-    plt.savefig('correlation.png')
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    return buf
