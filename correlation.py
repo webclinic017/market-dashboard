@@ -39,9 +39,8 @@ def build(numDays, symbols_list):
     #del corr_df.index.name
     corr_df.head(10)
 
-    plt.title(f'{numDays} Day Correlation')
     plt.figure(figsize=(13, 8))
-    seaborn.heatmap(corr_df, annot=True, cmap='RdYlGn')
+    seaborn.heatmap(corr_df, annot=True, cmap='RdYlGn').set(title=f'{numDays} Day Correlation')
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     buf.seek(0)
