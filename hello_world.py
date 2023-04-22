@@ -56,6 +56,27 @@ def realized_vol(ticker):
     buf.seek(0)
     return send_file(buf, mimetype='image/png')
 
+@app.route('/realized_vol_term/<ticker>')
+def realized_vol_term(ticker):
+    end = datetime.today()
+    start = end - timedelta(days=365)
+    r = pdr.get_data_yahoo(ticker, start, end) 
+    buf = io.BytesIO()
+    plt.style.use('dark_background')
+    plt.title(f'Realized Vol of {ticker.upper()}')
+    
+    realizedvol.yang_zhang(r,9).plot(label="9d")
+    realizedvol.yang_zhang(r,30).plot(label="30d")
+    plot = realizedvol.yang_zhang(r,90).plot(label="90d")
+    plt.legend(loc="upper left")
+    plot.get_figure().savefig(buf, format='png')
+    
+    plt.clf()
+    buf.seek(0)
+    return send_file(buf, mimetype='image/png')
+
+@app.route('/')
+
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
