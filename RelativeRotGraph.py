@@ -15,6 +15,7 @@ and Top left is 'Strengthening'
 More information can be found here: https://www.youtube.com/watch?v=TW0Q0lyGIEc&ab_channel=StockCharts
 
 """
+import io
 import yfinance as yf
 import matplotlib.pyplot as plt
 from datetime import datetime
@@ -84,8 +85,11 @@ def RRG(tickers, benchmark, start_date, end_date, lookback, lims=[97, 103]):
     plt.text(97.1,97.1,'Lagging',size=16)
     plt.text(102.15,97.1,'Cooling',size=16)
     plt.text(102.15,102.75,'Leading',size=16)
-    # Show the plot
-    plt.show()
+    
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    return buf
     
 start_date = '2022-01-01'
 end_date = datetime.today().strftime('%Y-%m-%d')
