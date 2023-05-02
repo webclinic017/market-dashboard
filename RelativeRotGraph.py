@@ -90,15 +90,6 @@ def RRG(tickers, benchmark, start_date, end_date, lookback, lims=[97, 103]):
     plt.savefig(buf, format='png')
     buf.seek(0)
     return buf
-    
-start_date = '2022-01-01'
-end_date = datetime.today().strftime('%Y-%m-%d')
-benchmark = 'SPY'
-num_hist = -15
-
-# Define tickers and benchmark
-tickers = ['XLP', 'XLE', 'XLF', 'XLRE', 'XLV', 'XLC','XLB','XLI','XLU','XLY','XLK', 'XBI', 'XRT', 'QQQ', 'XHB', 'SMH']
-RRG(tickers, benchmark, start_date, end_date, num_hist)
 
 
 '''

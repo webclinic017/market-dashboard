@@ -9,6 +9,8 @@ import yfinance as yf
 from datetime import datetime 
 # To visualize the results 
 import matplotlib
+
+from RelativeRotGraph import RRG
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
@@ -75,7 +77,17 @@ def realized_vol_term(ticker):
     buf.seek(0)
     return send_file(buf, mimetype='image/png')
 
-@app.route('/')
+@app.route('/rrg')
+def rrg():
+    start_date = '2022-01-01'
+    end_date = datetime.today().strftime('%Y-%m-%d')
+    benchmark = 'SPY'
+    num_hist = -15
+
+    # Define tickers and benchmark
+    tickers = ['XLP', 'XLE', 'XLF', 'XLRE', 'XLV', 'XLC','XLB','XLI','XLU','XLY','XLK', 'XBI', 'XRT', 'QQQ', 'XHB', 'SMH']
+    buf = RRG(tickers, benchmark, start_date, end_date, num_hist)
+    return send_file(buf, mimetype='image/png')
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
