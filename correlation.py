@@ -15,8 +15,6 @@ yf.pdr_override() # <== that's all it takes :-)
 def build(numDays, symbols_list):
     end = datetime.today()
     start = end - timedelta(days=numDays)
-    #array to store prices
-    symbols=[]
 
     #array to store prices
     symbols=[]
@@ -41,6 +39,19 @@ def build(numDays, symbols_list):
 
     plt.figure(figsize=(13, 8))
     seaborn.heatmap(corr_df, annot=True, cmap='RdYlGn').set(title=f'{numDays} Day Correlation')
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    return buf
+
+def buildChart(numDays,symbols_list):
+    end = datetime.today()
+    start = end - timedelta(days=numDays)
+    sym1 = pdr.get_data_yahoo(symbols_list[0], start, end) 
+    sym2 = pdr.get_data_yahoo(symbols_list[1], start, end) 
+
+    sym1['Close'].rolling(50).corr(sym2['Close']).plot()
+
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     buf.seek(0)

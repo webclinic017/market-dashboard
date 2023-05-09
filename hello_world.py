@@ -41,9 +41,13 @@ def hello():
 @app.route('/correlation/<int:days>/<list:symbols>')
 def correlationChart(days=30, symbols=['SPY', 'QQQ', 'IWM', 'TLT', 'GLD', 'USO', 'UUP', '^VIX', 'BTC-USD', 'ETH-USD']):
     plt.style.use('dark_background')
-    buf = correlation.build(days,symbols)
+    if(len(symbols) == 2):
+        buf = correlation.buildChart(symbols)
+    else:
+        buf = correlation.build(days,symbols)
     plt.clf()
     return send_file(buf, mimetype='image/png')
+
 
 @app.route('/realized_vol/<ticker>')
 def realized_vol(ticker):
@@ -87,6 +91,7 @@ def rrg():
     # Define tickers and benchmark
     tickers = ['XLP', 'XLE', 'XLF', 'XLRE', 'XLV', 'XLC','XLB','XLI','XLU','XLY','XLK', 'XBI', 'XRT', 'QQQ', 'XHB', 'SMH']
     buf = RRG(tickers, benchmark, start_date, end_date, num_hist)
+    plt.clf()
     return send_file(buf, mimetype='image/png')
 
 if __name__ == '__main__':
