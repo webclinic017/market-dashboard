@@ -50,6 +50,7 @@ def buildChart(numDays,symbols_list):
     sym1 = pdr.get_data_yahoo(symbols_list[0], start, end) 
     sym2 = pdr.get_data_yahoo(symbols_list[1], start, end) 
 
+    plt.title(f'Correlation of {symbols_list[0].upper()} vs {symbols_list[1].upper()}')
     sym1['Close'].rolling(50).corr(sym2['Close']).plot()
 
     buf = io.BytesIO()

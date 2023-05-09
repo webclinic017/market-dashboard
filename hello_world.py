@@ -42,7 +42,7 @@ def hello():
 def correlationChart(days=30, symbols=['SPY', 'QQQ', 'IWM', 'TLT', 'GLD', 'USO', 'UUP', '^VIX', 'BTC-USD', 'ETH-USD']):
     plt.style.use('dark_background')
     if(len(symbols) == 2):
-        buf = correlation.buildChart(symbols)
+        buf = correlation.buildChart(days, symbols)
     else:
         buf = correlation.build(days,symbols)
     plt.clf()
