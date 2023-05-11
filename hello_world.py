@@ -20,6 +20,7 @@ yf.pdr_override() # <== that's all it takes :-)
 
 import correlation
 import realizedvol
+import dressing
 
 class ListConverter(BaseConverter):
 
@@ -91,6 +92,16 @@ def rrg():
     # Define tickers and benchmark
     tickers = ['XLP', 'XLE', 'XLF', 'XLRE', 'XLV', 'XLC','XLB','XLI','XLU','XLY','XLK', 'XBI', 'XRT', 'QQQ', 'XHB', 'SMH']
     buf = RRG(tickers, benchmark, start_date, end_date, num_hist)
+    plt.clf()
+    return send_file(buf, mimetype='image/png')
+
+@app.route('/dressingMain')
+@app.route('/dressingMain/<ticker>')
+@app.route('/dressingMain/<ticker>/<start_date>')
+@app.route('/dressingMain/<ticker>/<start_date>/<end_date>')
+def dressingMain(ticker = 'SPY', start_date = (datetime.today()+timedelta(days=-365)).strftime('%Y-%m-%d'),
+             end_date = datetime.today().strftime('%Y-%m-%d'))
+    buf = dressing(ticker, start_date, end_date)
     plt.clf()
     return send_file(buf, mimetype='image/png')
 
