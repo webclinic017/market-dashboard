@@ -100,7 +100,7 @@ def rrg():
 @app.route('/dressingMain/<ticker>/<start_date>')
 @app.route('/dressingMain/<ticker>/<start_date>/<end_date>')
 def dressingMain(ticker = 'SPY', start_date = (datetime.today()+timedelta(days=-365)).strftime('%Y-%m-%d'), end_date = datetime.today().strftime('%Y-%m-%d')):
-    buf = dressing(ticker, start_date, end_date)
+    buf = dressing.dressing(ticker, start_date, end_date)
     plt.clf()
     return send_file(buf, mimetype='image/png')
 
