@@ -21,6 +21,7 @@ yf.pdr_override() # <== that's all it takes :-)
 import correlation
 import realizedvol
 import dressing
+import volCone
 
 class ListConverter(BaseConverter):
 
@@ -101,6 +102,15 @@ def rrg():
 @app.route('/dressingMain/<ticker>/<start_date>/<end_date>')
 def dressingMain(ticker = 'SPY', start_date = (datetime.today()+timedelta(days=-365)).strftime('%Y-%m-%d'), end_date = datetime.today().strftime('%Y-%m-%d')):
     buf = dressing.dressing(ticker, start_date, end_date)
+    plt.clf()
+    return send_file(buf, mimetype='image/png')
+    
+@app.route('/IVCone')
+@app.route('/IVCone/<ticker>')
+@app.route('/IVCone/<ticker>/<start_date>')
+@app.route('/IVCone/<ticker>/<start_date>/<end_date>')
+def IVCone(ticker = 'SPY', start_date = (datetime.today()+timedelta(days=-365)).strftime('%Y-%m-%d'), end_date = datetime.today().strftime('%Y-%m-%d')):
+    buf = volCone.ivCone(ticker, start_date, end_date)
     plt.clf()
     return send_file(buf, mimetype='image/png')
 
