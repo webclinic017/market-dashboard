@@ -22,6 +22,7 @@ import correlation
 import realizedvol
 import dressing
 import volCone
+import pairTrader
 
 class ListConverter(BaseConverter):
 
@@ -111,6 +112,25 @@ def dressingMain(ticker = 'SPY', start_date = (datetime.today()+timedelta(days=-
 @app.route('/IVCone/<ticker>/<start_date>/<end_date>')
 def IVCone(ticker = 'SPY', start_date = (datetime.today()+timedelta(days=-365)).strftime('%Y-%m-%d'), end_date = datetime.today().strftime('%Y-%m-%d')):
     buf = volCone.ivCone(ticker, start_date, end_date)
+    plt.clf()
+    return send_file(buf, mimetype='image/png')
+    
+@app.route('/pairsMaster')
+@app.route('/pairsMaster/<ticker_1>')
+@app.route('/pairsMaster/<ticker_1>/<ticker_2>')
+def pairsMaster(ticker_1, ticker_2):
+    if ticker_1 == ticker_2:
+        return
+    if ticker_1 == 'scan' and ticker_2 == 'active':
+        #Scanner works but takes ~15 minutes to run for the NASDAQ
+        #Deactivating the bot for now, will look into making it more efficient in the future
+        #scan_results = pairTrader.scanner()
+        return
+    spread_l, beta_l, r_sq_l, pval_l, adf_stats_l, zscores_l = pairTrader.spreadMain(ticker_1, ticker_2, -180)
+    spread_s, beta_s, r_sq_s, pval_s, adf_stats_s, zscores_s = pairTrader.spreadMain(ticker_1, ticker_2, -60)
+    buf = pairTrader.plot_pairs(spread_l, beta_l, r_sq_l, pval_l, adf_stats_l, zscores_l,
+                                spread_s, beta_s, r_sq_s, pval_s, adf_stats_s, zscores_s,
+                                ticker_1, ticker_2)
     plt.clf()
     return send_file(buf, mimetype='image/png')
 
