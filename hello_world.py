@@ -122,10 +122,17 @@ def pairsMaster(ticker_1, ticker_2):
     if ticker_1 == ticker_2:
         return
     if ticker_1 == 'scan' and ticker_2 == 'active':
-        #Scanner works but takes ~15 minutes to run for the NASDAQ
-        #Deactivating the bot for now, will look into making it more efficient in the future
-        #scan_results = pairTrader.scanner()
-        return
+        #Scans Nasdaq 100 stocks for potential pairs that meet certain criteria
+        scan_results = pairTrader.scanner()
+        plt.table(scan_results)
+        plt.title('Scan Results')
+        plt.axis('off')
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        plt.clf()
+        return send_file(buf, mimetype='image/png')
+    
     spread_l, beta_l, r_sq_l, pval_l, adf_stats_l, zscores_l = pairTrader.spreadMain(ticker_1, ticker_2, -180)
     spread_s, beta_s, r_sq_s, pval_s, adf_stats_s, zscores_s = pairTrader.spreadMain(ticker_1, ticker_2, -60)
     buf = pairTrader.plot_pairs(spread_l, beta_l, r_sq_l, pval_l, adf_stats_l, zscores_l,

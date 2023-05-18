@@ -120,22 +120,48 @@ def critical_val(value, crit_val, check_type):
 
 def scanner():
     #table_data = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
-    #ticker_list = table_data[0]['Symbol']
     table_data = pd.read_html('https://en.wikipedia.org/wiki/Nasdaq-100')
+    #ticker_list = table_data[0]['Symbol']
     ticker_list = table_data[4]['Ticker']
     scan_results = []
+    scan_results_f =[]
     count = 0
+    num_days = -180
+    data = yf.download(ticker_list.values.tolist(), start=(datetime.today()+timedelta(days=num_days)).strftime('%Y-%m-%d'), 
+                       end=datetime.today().strftime('%Y-%m-%d'))['Adj Close']
     for a in ticker_list:
         for b in ticker_list[count:]:
-            print(a,b)
-            if a != b:
-               spread_l, beta_l, r_sq_l, pval_l, adf_stats_l, zscores_l = spreadMain([a, b], -180)
+
+            if a != b and not data[a].isnull().values.any() and not data[b].isnull().values.any():
+               model = sm.OLS(np.asarray(data[a]), sm.add_constant(np.asarray(data[b])))
+               results = model.fit()
+               beta = np.round(results.params[1],2)
+               r_sq = np.round(results.rsquared, 3)
+               pval = np.round(results.pvalues[1], 3)
+
+               spread = np.asarray(data[a]) - (beta * np.asarray(data[b]))
+               adf_stats = adfuller(spread)
+               zscores = stats.zscore(spread)
                
-               if r_sq_l > 0.8 and pval_l < 0.1 and adf_stats_l < 0.2:
-                   spread_s, beta_s, r_sq_s, pval_s, adf_stats_s, zscores_s = spreadMain([a, b], -60)
-                   
-                   if r_sq_s > 0.8 and pval_s < 0.1 and adf_stats_s < 0.2 and np.abs(zscores_s) > 1:
-                       scan_results.append([a, b])
-        #Reduces the redundant scans to try and save time
+               if r_sq > 0.8 and pval < 0.1 and adf_stats[1] < 0.15:
+                   scan_results.append([a, b])
         count += 1
-    return scan_results
+        print(count)
+    
+    num_days = -60
+    data = yf.download(ticker_list.values.tolist(), start=(datetime.today()+timedelta(days=num_days)).strftime('%Y-%m-%d'), 
+                       end=datetime.today().strftime('%Y-%m-%d'))['Adj Close']
+    for a in scan_results:
+        model = sm.OLS(np.asarray(data[a[0]]), sm.add_constant(np.asarray(data[a[1]])))
+        results = model.fit()
+        beta = np.round(results.params[1],2)
+        r_sq = np.round(results.rsquared, 3)
+        pval = np.round(results.pvalues[1], 3)
+
+        spread = np.asarray(data[a[0]]) - (beta * np.asarray(data[a[1]]))
+        adf_stats = adfuller(spread)
+        zscores = stats.zscore(spread)
+
+        if r_sq > 0.8 and pval < 0.1 and adf_stats[1] < 0.15 and np.abs(zscores[-1]) > 1.5:
+            scan_results_f.append(a)
+    return(scan_results_f)
