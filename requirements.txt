@@ -38,3 +38,4 @@ urllib3==1.26.15
 webencodings==0.5.1
 Werkzeug==2.2.3
 yfinance==0.2.13
+statsmodels==0.13.5
