@@ -84,14 +84,23 @@ def realized_vol_term(ticker):
     return send_file(buf, mimetype='image/png')
 
 @app.route('/rrg')
-def rrg():
+@app.route('/rrg/<rrg_set>')
+def rrg(rrg_set):
     start_date = '2022-01-01'
     end_date = datetime.today().strftime('%Y-%m-%d')
     benchmark = 'SPY'
-    num_hist = -15
+    num_hist = -10
 
     # Define tickers and benchmark
-    tickers = ['XLP', 'XLE', 'XLF', 'XLRE', 'XLV', 'XLC','XLB','XLI','XLU','XLY','XLK', 'XBI', 'XRT', 'QQQ', 'XHB', 'SMH']
+    if rrg_set == '1' or not rrg_set:
+        tickers = ['XLP', 'XLE', 'XLF', 'XLRE', 'XLV', 'XLC','XLB','XLI','XLU','XLY','XLK', 'XBI', 'XRT', 'QQQ', 'XHB', 'SMH']
+    elif rrg_set == '2':
+        tickers = ['GLD', 'TLT', 'SLV', 'WEAT', 'USO', 'CLF', 'URA', 'UNG', 'CORN', 'PALL', 'PPLT']
+    elif rrg_set == '3':
+        tickers = ['EWZ','EWU','EWW','EWJ','EWG','EWH','EWY','FXI','KWEB']
+    else:
+        tickers = ['XLP', 'XLE', 'XLF', 'XLRE', 'XLV', 'XLC','XLB','XLI','XLU','XLY','XLK', 'XBI', 'XRT', 'QQQ', 'XHB', 'SMH']
+        
     buf = RRG(tickers, benchmark, start_date, end_date, num_hist)
     plt.clf()
     return send_file(buf, mimetype='image/png')
