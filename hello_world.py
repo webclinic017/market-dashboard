@@ -4,6 +4,8 @@ from flask import Flask
 from flask import send_file
 from werkzeug.routing import BaseConverter
 
+import json
+
 # Used to grab the stock prices, with yahoo 
 import yfinance as yf
 from datetime import datetime 
@@ -83,6 +85,46 @@ def realized_vol_term(ticker):
     plt.clf()
     buf.seek(0)
     return send_file(buf, mimetype='image/png')
+
+@app.route('/vrp')
+def vrp():
+    end = datetime.today()
+    start = end - timedelta(days=365)
+    r = pdr.get_data_yahoo('^SPX', start, end)
+    vix = pdr.get_data_yahoo('^VIX', start, end)
+   
+    plt.style.use('dark_background')
+    plt.title(f'Implied Vol Premium SPX and VIX 30 day')
+
+    realizedvol.yang_zhang(r,30).mul(100).plot(label="SPX Vol")
+    plot = vix['Close'].plot(label='VIX')
+
+    plt.legend(loc="upper left")
+
+    buf = io.BytesIO()
+    plot.get_figure().savefig(buf, format='png')
+    
+    plt.clf()
+    buf.seek(0)
+    return send_file(buf, mimetype='image/png')
+
+@app.route('/realized_vol_term/json/<ticker>')
+def realized_vol_term_json(ticker):
+    end = datetime.today()
+    start = end - timedelta(days=365)
+    r = pdr.get_data_yahoo(ticker, start, end) 
+    
+    d9rvol = realizedvol.yang_zhang(r,9).to_json()
+    d30rvol = realizedvol.yang_zhang(r,30).to_json()
+    d90rvol = realizedvol.yang_zhang(r,90).to_json()
+
+    data = json.dumps({
+        "d9": d9rvol,
+        "d30": d30rvol,
+        "d90": d90rvol
+    })
+
+    return data
 
 @app.route('/rrg')
 @app.route('/rrg/<rrg_set>')
