@@ -1,5 +1,7 @@
 import math
 import numpy as np
+import json
+from datetime import datetime 
 
 
 def standard_deviation(price_data, window=30, trading_periods=252, clean=True):
@@ -117,3 +119,15 @@ def yang_zhang(price_data, window=30, trading_periods=252, clean=True):
         return result.dropna()
     else:
         return result
+
+def rvol_to_json(df):
+    dfJson = json.loads(df.to_json(orient ='table'))
+    rvol = []
+    for i in dfJson['data']:
+        data = []
+        utc_time = datetime.strptime(i['Date'], "%Y-%m-%dT%H:%M:%S.%f")
+        epoch_time = int((utc_time - datetime(1970, 1, 1)).total_seconds() * 1000)
+        data.append(epoch_time)
+        data.append(i['values'])
+        rvol.append(data)
+    return rvol

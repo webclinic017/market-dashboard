@@ -2,6 +2,7 @@ import io
 import os
 from flask import Flask
 from flask import send_file
+from flask import jsonify
 from werkzeug.routing import BaseConverter
 
 import json
@@ -89,7 +90,7 @@ def realized_vol_term(ticker):
 @app.route('/vrp')
 def vrp():
     end = datetime.today()
-    start = end - timedelta(days=365)
+    start = end - timedelta(days=3650)
     r = pdr.get_data_yahoo('^SPX', start, end)
     vix = pdr.get_data_yahoo('^VIX', start, end)
    
@@ -107,24 +108,22 @@ def vrp():
     plt.clf()
     buf.seek(0)
     return send_file(buf, mimetype='image/png')
-
+    
 @app.route('/realized_vol_term/json/<ticker>')
 def realized_vol_term_json(ticker):
     end = datetime.today()
     start = end - timedelta(days=365)
     r = pdr.get_data_yahoo(ticker, start, end) 
     
-    d9rvol = realizedvol.yang_zhang(r,9).to_json()
-    d30rvol = realizedvol.yang_zhang(r,30).to_json()
-    d90rvol = realizedvol.yang_zhang(r,90).to_json()
+    d9rvol = realizedvol.rvol_to_json(realizedvol.yang_zhang(r,9))
+    d30rvol = realizedvol.rvol_to_json(realizedvol.yang_zhang(r,30))
+    d90rvol = realizedvol.rvol_to_json(realizedvol.yang_zhang(r,90))
 
-    data = json.dumps({
-        "d9": d9rvol,
-        "d30": d30rvol,
-        "d90": d90rvol
-    })
-
-    return data
+    return jsonify(
+        d9 = d9rvol,
+        d30 = d30rvol,
+        d90 = d90rvol
+    )
 
 @app.route('/rrg')
 @app.route('/rrg/<rrg_set>')
