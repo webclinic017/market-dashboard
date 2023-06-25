@@ -15,6 +15,7 @@ from datetime import datetime
 import matplotlib
 
 from RelativeRotGraph import RRG
+from rebalance_effects import rebalance_backtest
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
@@ -205,6 +206,10 @@ def pairsMaster(ticker_1, ticker_2):
                                 ticker_1, ticker_2)
     plt.clf()
     return send_file(buf, mimetype='image/png')
+@app.route('/rebal')
+def rebal():
+    html = rebalance_backtest()
+    return send_file(html)
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
