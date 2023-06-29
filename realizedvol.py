@@ -120,7 +120,7 @@ def yang_zhang(price_data, window=30, trading_periods=252, clean=True):
     else:
         return result
 
-def rvol_to_json(df):
+def rvol_to_json(df, columnName='values'):
     dfJson = json.loads(df.to_json(orient ='table'))
     rvol = []
     for i in dfJson['data']:
@@ -128,6 +128,6 @@ def rvol_to_json(df):
         utc_time = datetime.strptime(i['Date'], "%Y-%m-%dT%H:%M:%S.%f")
         epoch_time = int((utc_time - datetime(1970, 1, 1)).total_seconds() * 1000)
         data.append(epoch_time)
-        data.append(i['values'])
+        data.append(i[columnName])
         rvol.append(data)
     return rvol

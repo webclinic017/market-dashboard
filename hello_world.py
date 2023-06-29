@@ -211,6 +211,21 @@ def rebal():
     html = rebalance_backtest()
     return send_file(html)
 
+@app.route('/vixBasis')
+def vix_basis():
+    end = datetime.today()
+    start = end - timedelta(days=3650)
+    vix = pdr.get_data_yahoo('^VIX', start, end)
+    vix3m = pdr.get_data_yahoo('^VIX3M', start, end)
+
+    ivts = vix['Close'] / vix3m['Close']
+    vvol = realizedvol.yang_zhang(vix, 60)
+
+    return jsonify(
+        vvol = realizedvol.rvol_to_json(vvol),
+        ivts = realizedvol.rvol_to_json(ivts, 'Close')
+    )
+
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
