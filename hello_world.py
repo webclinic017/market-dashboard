@@ -16,6 +16,7 @@ import matplotlib
 
 from RelativeRotGraph import RRG
 from rebalance_effects import rebalance_backtest
+from vixbasisBacktest import backtest
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
@@ -225,6 +226,11 @@ def vix_basis():
         vvol = realizedvol.rvol_to_json(vvol),
         ivts = realizedvol.rvol_to_json(ivts, 'Close')
     )
+
+@app.route('/backtest/vixbasis')
+def vix_basis_backtest():
+    html = backtest()
+    return send_file(html)
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
