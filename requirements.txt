@@ -42,4 +42,3 @@ statsmodels==0.13.5
 scipy==1.10.1
 backtesting==0.3.3
 exchange_calendars==4.2.5
-QuantStats==0.0.61

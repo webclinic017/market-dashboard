@@ -1,3 +1,4 @@
+import io
 import yfinance as yf
 from datetime import datetime 
 from datetime import timedelta
@@ -5,8 +6,7 @@ from pandas_datareader import data as pdr
 import pandas as pd
 import numpy as np
 import matplotlib
-import quantstats as qs
-
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 yf.pdr_override()
 
@@ -49,16 +49,15 @@ def backtest():
 
     pos = values.apply(vixBasisStrat, axis=1)
 
-    #fig, ax = plt.subplots(4,1)
-    #r.plot(ax=ax[0], title='^SHORTVOL')
-    #ivts.plot(ax=ax[1], title='IVTS')
-    #pos.plot(ax=ax[2], title='Position')
+    fig, ax = plt.subplots(4,1)
+    r.plot(ax=ax[0], title='^SHORTVOL')
+    ivts.plot(ax=ax[1], title='IVTS')
+    pos.plot(ax=ax[2], title='Position')
 
     #shift 1 day to avoid look-ahead bias
     my_rs = pos.shift(1)*rs
 
     #calculate returns
-    returns = my_rs.cumsum().apply(np.exp)  #.plot(ax=ax[3], title='Strategy Performance')
-
-    qs.reports.html(returns,output=True,download_filename="vixbasis.html")
-    return "vixbasis.html"
+    buf = io.BytesIO()
+    my_rs.cumsum().apply(np.exp).plot(ax=ax[3], title='Strategy Performance').get_figure().savefig(buf, format='png')
+    return buf

@@ -229,8 +229,10 @@ def vix_basis():
 
 @app.route('/backtest/vixbasis')
 def vix_basis_backtest():
-    html = backtest()
-    return send_file(html)
+    buf = backtest()
+    buf.seek(0)
+    plt.clf()
+    return send_file(buf, mimetype='image/png')
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
