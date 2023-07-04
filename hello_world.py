@@ -16,7 +16,6 @@ import matplotlib
 
 from RelativeRotGraph import RRG
 from rebalance_effects import rebalance_backtest
-from vixbasisBacktest import backtest
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
