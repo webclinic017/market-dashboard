@@ -219,11 +219,11 @@ def vix_basis():
     vix3m = pdr.get_data_yahoo('^VIX3M', start, end)
 
     ivts = vix['Close'] / vix3m['Close']
-    vvol = realizedvol.yang_zhang(vix, 60)
+    vvol = realizedvol.yang_zhang(vix, 60, True)
 
     return jsonify(
         vvol = realizedvol.rvol_to_json(vvol),
-        ivts = realizedvol.rvol_to_json(ivts, 'Close', True)
+        ivts = realizedvol.rvol_to_json(ivts, 'Close')
     )
 
 @app.route('/backtest/vixbasis')
