@@ -224,7 +224,7 @@ def vix_basis():
 
     return jsonify(
         vvol = realizedvol.rvol_to_json(vvol),
-        ivts = realizedvol.rvol_to_json(ivts, 'Close')
+        ivts = realizedvol.rvol_to_json(ivts, 'Close', True)
     )
 
 @app.route('/backtest/vixbasis')
