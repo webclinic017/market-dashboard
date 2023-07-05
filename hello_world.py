@@ -219,10 +219,10 @@ def vix_basis():
     vix3m = pdr.get_data_yahoo('^VIX3M', start, end)
 
     ivts = vix['Close'] / vix3m['Close']
-    vvol = realizedvol.yang_zhang(vix, 60, True)
+    vvol = realizedvol.standard_deviation(vix, 60)
 
     return jsonify(
-        vvol = realizedvol.rvol_to_json(vvol),
+        vvol = realizedvol.rvol_to_json(vvol, 'Close'),
         ivts = realizedvol.rvol_to_json(ivts, 'Close')
     )
 
