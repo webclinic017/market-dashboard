@@ -6,6 +6,7 @@ from flask import jsonify
 from werkzeug.routing import BaseConverter
 import scipy.stats as stats
 import pandas as pd 
+import exchange_calendars as ec
 
 import json
 
@@ -238,8 +239,8 @@ def prices():
     spy_monthly_data = spy.resample('M').ffill()
     tlt_monthly_data = tlt.resample('M').ffill()
 
-    spy_monthly_returns = spy_monthly_data['Close'].pct_change()
-    tlt_monthly_returns = tlt_monthly_data['Close'].pct_change()
+    spy_monthly_returns = spy_monthly_data['Close'].pct_change().dropna()
+    tlt_monthly_returns = tlt_monthly_data['Close'].pct_change().dropna()
 
     # Combine Date, TLT monthly returns, and SPY monthly returns
     combined_data = []
@@ -253,7 +254,27 @@ def prices():
     # Filter the DataFrame based on the current month
     filtered_df = spy[(spy.index.month == current_month) & (spy.index.year == current_year)]
     tradingDay = len(filtered_df.index)
-    stockBondJson = { "returns": combined_data, "currentTradingDay": tradingDay}
+
+    # calculate the number of trading days in this current month
+    # we need to know when there are 5 trading days left in the month
+    # Get the calendar for a specific exchange
+    exchange = ec.get_calendar('NYSE')
+
+    # Get the current year and month
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+
+    # Get the start and end dates of the current month
+    start_date = datetime(current_year, current_month, 1)
+    end_date = datetime(current_year, current_month + 1, 1)
+
+    # Get all the trading days in the current month
+    trading_days = exchange.sessions_in_range(start_date, end_date)
+
+    # Count the number of trading days
+    num_trading_days = len(trading_days)
+
+    stockBondJson = { "returns": combined_data, "currentTradingDay": tradingDay, "tradingDaysInMonth": num_trading_days}
     # Convert combined_data to a JSON array
     json_data = json.dumps(stockBondJson)
 
