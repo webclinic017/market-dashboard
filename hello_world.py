@@ -5,6 +5,7 @@ from flask import send_file
 from flask import jsonify
 from werkzeug.routing import BaseConverter
 import scipy.stats as stats
+import pandas as pd 
 
 import json
 
@@ -225,6 +226,44 @@ def vix_basis():
         vvol = realizedvol.rvol_to_json(vvol, 'Close'),
         ivts = realizedvol.rvol_to_json(ivts, 'Close')
     )
+
+@app.route('/stock_bond')
+def prices():
+    end = datetime.today()
+    start = end - timedelta(days=3000)
+ 
+    spy = pdr.get_data_yahoo('SPY', start, end)
+    tlt = pdr.get_data_yahoo('TLT', start, end)
+
+    spy_monthly_data = spy.resample('M').ffill()
+    tlt_monthly_data = tlt.resample('M').ffill()
+
+    spy_monthly_returns = spy_monthly_data['Close'].pct_change()
+    tlt_monthly_returns = tlt_monthly_data['Close'].pct_change()
+
+    # Combine Date, TLT monthly returns, and SPY monthly returns
+    combined_data = []
+    for date, tlt_return, spy_return in zip(tlt_monthly_returns.index, tlt_monthly_returns, spy_monthly_returns):
+        data = {'Date': date.strftime('%Y-%m-%d'), 'TLT': tlt_return, 'SPY': spy_return}
+        combined_data.append(data)
+    
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+
+    # Filter the DataFrame based on the current month
+    filtered_df = spy[(spy.index.month == current_month) & (spy.index.year == current_year)]
+    tradingDay = len(filtered_df.index)
+    stockBondJson = { "returns": combined_data, "currentTradingDay": tradingDay}
+    # Convert combined_data to a JSON array
+    json_data = json.dumps(stockBondJson)
+
+    response = app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
+    
+    return response
 
 @app.route('/backtest/vixbasis')
 def vix_basis_backtest():
