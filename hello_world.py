@@ -7,6 +7,7 @@ from werkzeug.routing import BaseConverter
 import scipy.stats as stats
 import pandas as pd 
 import exchange_calendars as ec
+import Strategies.backtest
 
 import json
 
@@ -286,12 +287,10 @@ def prices():
     
     return response
 
-@app.route('/backtest/vixbasis')
-def vix_basis_backtest():
-    buf = backtest()
-    buf.seek(0)
-    plt.clf()
-    return send_file(buf, mimetype='image/png')
+@app.route('/backtest')
+def backtestThings():
+    value = Strategies.backtest.run_backtest()
+    return jsonify(value)
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.

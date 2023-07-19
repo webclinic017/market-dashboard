@@ -1,45 +1,64 @@
-# backtest.py
+from datetime import datetime 
+import backtrader as bt
+import pandas as pd
+from pandas_datareader import data as pdr
+from datetime import timedelta
+import yfinance as yf
+yf.pdr_override() # <== that's all it takes :-)
 
-from abc import ABCMeta, abstractmethod
+class RebalanceStrategy(bt.Strategy):
+    params = (
+        ('rebalance_monthday', 1),  # Rebalance on the 1st day of the month
+        ('allocation_vti', 0.6),    # 60% allocation to VTI
+        ('allocation_tlt', 0.4)     # 40% allocation to TLT
+    )
 
-class Strategy(object):
-    """Strategy is an abstract base class providing an interface for
-    all subsequent (inherited) trading strategies.
+    def __init__(self):
+        self.vti = self.datas[0]
+        self.tlt = self.datas[1]
+        self.counter = 0
 
-    The goal of a (derived) Strategy object is to output a list of signals,
-    which has the form of a time series indexed pandas DataFrame.
+    def next(self):
+        #self.data.datetime.date(0) returns the date of the data.  Need to get the last day of the month
+        if self.counter % 30 == 0:
+            self.rebalance_portfolio()
 
-    In this instance only a single symbol/instrument is supported."""
+        self.counter += 1
 
-    __metaclass__ = ABCMeta
+    def rebalance_portfolio(self):
+        self.order_target_percent(self.vti, target=self.params.allocation_vti)
+        self.order_target_percent(self.tlt, target=self.params.allocation_tlt)
 
-    @abstractmethod
-    def generate_signals(self):
-        """An implementation is required to return the DataFrame of symbols 
-        containing the signals to go long, short or hold (1, -1 or 0)."""
-        raise NotImplementedError("Should implement generate_signals()!")
-        
-class Portfolio(object):
-    """An abstract base class representing a portfolio of 
-    positions (including both instruments and cash), determined
-    on the basis of a set of signals provided by a Strategy."""
 
-    __metaclass__ = ABCMeta
+def run_backtest():
+    cerebro = bt.Cerebro()
 
-    @abstractmethod
-    def generate_positions(self):
-        """Provides the logic to determine how the portfolio 
-        positions are allocated on the basis of forecasting
-        signals and available cash."""
-        raise NotImplementedError("Should implement generate_positions()!")
+    end = datetime.today()
+    start = end - timedelta(days=3650)
+    vti_data = yf.download('SPY', start, end)
+    tlt_data = yf.download('TLT', start, end)
 
-    @abstractmethod
-    def backtest_portfolio(self):
-        """Provides the logic to generate the trading orders
-        and subsequent equity curve (i.e. growth of total equity),
-        as a sum of holdings and cash, and the bar-period returns
-        associated with this curve based on the 'positions' DataFrame.
+    # Create backtrader data feeds
+    vti_feed = bt.feeds.PandasData(dataname=vti_data)
+    tlt_feed = bt.feeds.PandasData(dataname=tlt_data)
 
-        Produces a portfolio object that can be examined by 
-        other classes/functions."""
-        raise NotImplementedError("Should implement backtest_portfolio()!")
+    # Add data feeds to cerebro
+    cerebro.adddata(vti_feed)
+    cerebro.adddata(tlt_feed)
+
+    # Set initial portfolio value
+    cerebro.broker.setcash(100000)
+
+    # Add the strategy
+    cerebro.addstrategy(RebalanceStrategy)
+
+    # Run the backtest
+    cerebro.run()
+
+    # Print final portfolio value
+    final_value = cerebro.broker.getvalue()
+    print(f"Final portfolio value: ${final_value:.2f}")
+    return final_value
+
+if __name__ == '__main__':
+    run_backtest()
