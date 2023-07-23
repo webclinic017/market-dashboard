@@ -49,15 +49,28 @@ def backtest():
 
     pos = values.apply(vixBasisStrat, axis=1)
 
-    fig, ax = plt.subplots(4,1)
-    r.plot(ax=ax[0], title='^SHORTVOL')
-    ivts.plot(ax=ax[1], title='IVTS')
-    pos.plot(ax=ax[2], title='Position')
+    #fig, ax = plt.subplots(nrows=4,ncols=1, figsize=(5.5, 3.5))
+    #r.plot(ax=ax[0], title='^SHORTVOL')
+
+    #ivts.plot(ax=ax[1], title='IVTS')
+    #pos.plot(ax=ax[2], title='Position')
+    
 
     #shift 1 day to avoid look-ahead bias
     my_rs = pos.shift(1)*rs
 
     #calculate returns
     buf = io.BytesIO()
-    my_rs.cumsum().apply(np.exp).plot(ax=ax[3], title='Strategy Performance').get_figure().savefig(buf, format='png')
+    returns = my_rs.cumsum().apply(np.exp)
+    
+    # Performance Output
+    tearsheet = Portfolio.TearSheet.TearsheetStatistics(
+        strategy_equity=returns,
+        benchmark_equity=r,
+        title='Long/Short Leveraged Treasury Bond ETFs'
+    )
+    tearsheet.plot_results()
+
+    #my_rs.cumsum().apply(np.exp).plot(ax=ax[3], title='Strategy Performance').get_figure().savefig(buf, format='png')
+    
     return buf

@@ -7,7 +7,8 @@ from werkzeug.routing import BaseConverter
 import scipy.stats as stats
 import pandas as pd 
 import exchange_calendars as ec
-import Strategies.backtest
+import Backtrader.backtest
+from Backtrader.RebalanceStrategy import RebalanceStrategy
 
 import json
 
@@ -147,7 +148,6 @@ def realized_vol_term_json(ticker):
 @app.route('/rrg')
 @app.route('/rrg/<rrg_set>')
 def rrg(rrg_set):
-    plt.style.use('default')
     start_date = '2022-01-01'
     end_date = datetime.today().strftime('%Y-%m-%d')
     benchmark = 'SPY'
@@ -172,7 +172,6 @@ def rrg(rrg_set):
 @app.route('/dressingMain/<ticker>/<start_date>')
 @app.route('/dressingMain/<ticker>/<start_date>/<end_date>')
 def dressingMain(ticker = 'SPY', start_date = (datetime.today()+timedelta(days=-365)).strftime('%Y-%m-%d'), end_date = datetime.today().strftime('%Y-%m-%d')):
-    plt.style.use('default')
     buf = dressing.dressing(ticker, start_date, end_date)
     plt.clf()
     return send_file(buf, mimetype='image/png')
@@ -182,7 +181,6 @@ def dressingMain(ticker = 'SPY', start_date = (datetime.today()+timedelta(days=-
 @app.route('/IVCone/<ticker>/<start_date>')
 @app.route('/IVCone/<ticker>/<start_date>/<end_date>')
 def IVCone(ticker = 'SPY', start_date = (datetime.today()+timedelta(days=-365)).strftime('%Y-%m-%d'), end_date = datetime.today().strftime('%Y-%m-%d')):
-    plt.style.use('default')
     buf = volCone.ivCone(ticker, start_date, end_date)
     plt.clf()
     return send_file(buf, mimetype='image/png')
@@ -191,7 +189,6 @@ def IVCone(ticker = 'SPY', start_date = (datetime.today()+timedelta(days=-365)).
 @app.route('/pairsMaster/<ticker_1>')
 @app.route('/pairsMaster/<ticker_1>/<ticker_2>')
 def pairsMaster(ticker_1, ticker_2):
-    plt.style.use('default')
     if ticker_1 == ticker_2:
         return
     if ticker_1 == 'scan' and ticker_2 == 'active':
@@ -293,8 +290,8 @@ def prices():
 
 @app.route('/backtest')
 def backtestThings():
-    value = Strategies.backtest.run_backtest()
-    return jsonify(value)
+    buf = Backtrader.backtest.run_backtest(RebalanceStrategy, ['SPY','TLT'], start='2013-01-01', end='2100-01-01', title='60-40 Rebalance SPY, TLT')        
+    return send_file(buf, mimetype='image/png')
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
