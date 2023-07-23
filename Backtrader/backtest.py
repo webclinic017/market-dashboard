@@ -2,10 +2,12 @@ import io
 import backtrader as bt
 
 from pandas_datareader import data as pdr
+from matplotlib import gridspec
 
 import yfinance as yf
 import numpy as np
 from backtrader import TimeFrame
+import pandas as pd
 yf.pdr_override() # <== that's all it takes :-)
 
 import matplotlib
@@ -54,6 +56,11 @@ def run_backtest(strategy, tickers, start, end, title):
     print("Drawdown: ", strats[0].analyzers.drawdown.get_analysis())
     print("Active Position Value: ",strats[0].analyzers.posval.get_analysis())
 
+    number_of_years = (pd.to_datetime(end) - pd.to_datetime(start)).days / 365.25
+    cagr = (final_value / startcash) ** (1 / number_of_years) - 1
+    profits = final_value - startcash
+    max_drawdown = strats[0].analyzers.drawdown.get_analysis()['max']['drawdown']
+
 
     pyfoliolzer = strats[0].analyzers.getbyname('PyFolio')
     returns, positions, transactions, gross_lev = pyfoliolzer.get_pf_items()
@@ -66,28 +73,35 @@ def run_backtest(strategy, tickers, start, end, title):
 
     portfolio_value = returns.cumsum().apply(np.exp) * startcash
     # Visulize the output
-    fig, ax = plt.subplots(3, 1, sharex=True, figsize=[14, 8])
+    fig, ax = plt.subplots(3, 1, figsize=[14, 8], gridspec_kw={'height_ratios': [10, 1, 5]})
 
     # portfolio value
     portfolio_value.plot(ax=ax[0], label='Strategy')
     ax[0].set_ylabel('Portfolio Value')
     ax[0].grid(True)
+    ax[0].get_xaxis().label.set_visible(False)
     ax[0].legend()
 
-    col_labels = ['Ann. Return(%)', 'Ann. Sharpe', 'Ann.Volatility(%)', 'Max.DD(%)', 'Tot.Profit($']
-    table_vals= [[1,2,3,4,5]]
+    col_labels = ['Ann. Return(%)', 'Ann. Sharpe', 'Ann.Volatility(%)', 'Max.DD(%)', 'Tot.Profit($)']
+    table_vals= [[cagr,2,3,max_drawdown,profits]]
 
     ax[1].table(cellText=table_vals,
                      colLabels=col_labels,
-                     loc='upper right')
+                     loc='upper right',
+                     edges='open',
+                     cellLoc='center')
+    ax[1].grid(False)
+    ax[1].patch.set_visible(False)
+    ax[1].axis('off')
 
     # daily returns
     returns.plot(ax=ax[2], label='Strategy', alpha=0.5)
     ax[2].set_ylabel('Daily Returns')
+    ax[2].grid(True)
+    ax[2].get_xaxis().label.set_visible(False)
 
-
+    fig.subplots_adjust(hspace=0.3, wspace=0.5)
     fig.suptitle(title, fontsize=16)
-    plt.grid(True)
     plt.legend()
     buf = io.BytesIO()
     plt.savefig(buf, format='png', dpi=300)
