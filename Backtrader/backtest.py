@@ -2,7 +2,7 @@ import io
 import backtrader as bt
 
 from pandas_datareader import data as pdr
-from matplotlib import gridspec
+from datetime import date
 
 import yfinance as yf
 import numpy as np
@@ -13,6 +13,14 @@ yf.pdr_override() # <== that's all it takes :-)
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+def annualized_volatility(dailyReturns):
+    returns = np.array(dailyReturns)
+    daily_volatility = np.std(returns)
+
+    # Calculate the annualized volatility
+    annualized_volatility = daily_volatility * np.sqrt(252)  # Assuming 252 trading days in a year
+    return annualized_volatility
 
 
 def run_backtest(strategy, tickers, start, end, title):
@@ -36,10 +44,8 @@ def run_backtest(strategy, tickers, start, end, title):
                         timeframe=TimeFrame.Days,
                         annualize=True,
                         _name="sharpe")
-    cerebro.addanalyzer(bt.analyzers.Returns, _name="returns")
     cerebro.addanalyzer(bt.analyzers.PyFolio, _name='PyFolio')
     cerebro.addanalyzer(bt.analyzers.DrawDown, _name="drawdown")
-    cerebro.addanalyzer(bt.analyzers.PositionsValue, _name="posval")
     cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='TradeAnalyzer')
     cerebro.addstrategy(strategy)
 
@@ -50,26 +56,18 @@ def run_backtest(strategy, tickers, start, end, title):
 
     # Print final portfolio value
     final_value = cerebro.broker.getvalue()
-    print(f"Final portfolio value: ${final_value:.2f}")
-    print("Return: ", strats[0].analyzers.returns.get_analysis())
-    print("Sharpe Ratio: ", strats[0].analyzers.sharpe.get_analysis())
-    print("Drawdown: ", strats[0].analyzers.drawdown.get_analysis())
-    print("Active Position Value: ",strats[0].analyzers.posval.get_analysis())
 
-    number_of_years = (pd.to_datetime(end) - pd.to_datetime(start)).days / 365.25
+    number_of_years = (pd.to_datetime(date.today()) - pd.to_datetime(start)).days / 365.25
     cagr = (final_value / startcash) ** (1 / number_of_years) - 1
     profits = final_value - startcash
     max_drawdown = strats[0].analyzers.drawdown.get_analysis()['max']['drawdown']
+    sharpe = strats[0].analyzers.sharpe.get_analysis()['sharperatio']
 
 
     pyfoliolzer = strats[0].analyzers.getbyname('PyFolio')
     returns, positions, transactions, gross_lev = pyfoliolzer.get_pf_items()
+    annualized_vol = annualized_volatility(returns)
 
-    pyfoliolzer = strats[0].analyzers.getbyname('PyFolio')
-    
-    returns.name = 'Strategy'
-    print(returns.head(2))
-    
 
     portfolio_value = returns.cumsum().apply(np.exp) * startcash
     # Visulize the output
@@ -83,7 +81,7 @@ def run_backtest(strategy, tickers, start, end, title):
     ax[0].legend()
 
     col_labels = ['Ann. Return(%)', 'Ann. Sharpe', 'Ann.Volatility(%)', 'Max.DD(%)', 'Tot.Profit($)']
-    table_vals= [[cagr,2,3,max_drawdown,profits]]
+    table_vals= [["{:.2f}".format(cagr*100),"{:.2f}".format(sharpe),"{:.2f}".format(annualized_vol*100),"{:.2f}".format(max_drawdown),"${:,.2f}".format(profits)]]
 
     ax[1].table(cellText=table_vals,
                      colLabels=col_labels,
