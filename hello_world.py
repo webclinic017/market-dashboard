@@ -9,6 +9,7 @@ import pandas as pd
 import exchange_calendars as ec
 import Backtrader.backtest
 from Backtrader.RebalanceStrategy import RebalanceStrategy
+from Backtrader.EOMEffects import EOMEffectsStrategy
 
 import json
 
@@ -291,6 +292,11 @@ def prices():
 @app.route('/backtest')
 def backtestThings():
     buf = Backtrader.backtest.run_backtest(RebalanceStrategy, ['SPY','TLT'], start='2013-01-01', end='2100-01-01', title='60-40 Rebalance SPY, TLT')        
+    return send_file(buf, mimetype='image/png')
+
+@app.route('/backtest/eom')
+def backtestEOM():
+    buf = Backtrader.backtest.run_backtest(EOMEffectsStrategy, ['SPY','TLT'], start='2013-01-01', end='2100-01-01', title='End of Month Effects')        
     return send_file(buf, mimetype='image/png')
 
 if __name__ == '__main__':
