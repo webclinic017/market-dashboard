@@ -23,6 +23,7 @@ class EOMEffectsStrategy(bt.Strategy):
 
     def next(self):
         date = self.data.datetime.date(0)
+        self.currentTradingDayOfMonth+=1
 
         if self.currentMonth != date.month:
             self.currentMonth = date.month
@@ -34,31 +35,36 @@ class EOMEffectsStrategy(bt.Strategy):
             trading_days = self.exchange.sessions_in_range(start_date, end_date)
             # Count the number of trading days in this month
             self.num_trading_days = len(trading_days)
-        elif self.currentTradingDayOfMonth == 5:
+        elif self.currentTradingDayOfMonth == 3:
             # close all positions
-            self.order_target_percent(self.tlt, target=0)
-            self.order_target_percent(self.spy, target=0)
-        elif ((self.num_trading_days - self.currentTradingDayOfMonth) == 6):
+            if not self.currentPosition is None:
+                self.close(self.currentPosition)
+        elif ((self.num_trading_days - self.currentTradingDayOfMonth) == 7):
             spy_returns = (self.spy.close[0] - self.spy.close[-self.currentTradingDayOfMonth]) / self.spy.close[-self.currentTradingDayOfMonth]
             tlt_returns = (self.tlt.close[0] - self.tlt.close[-self.currentTradingDayOfMonth]) / self.tlt.close[-self.currentTradingDayOfMonth]
 
             # Buy the under performing asset
             if spy_returns > tlt_returns:
-                self.order_target_percent(self.tlt, target=1.0)
-                self.currentPosition = 'TLT'
+                self.order_target_percent(self.tlt, target=0.95, exectype=bt.Order.Market)
+                self.currentPosition = self.tlt
             else:
-                self.order_target_percent(self.spy, target=1.0)
-                self.currentPosition = 'SPY'
-        elif((self.num_trading_days - self.currentTradingDayOfMonth) == 2):
+                self.order_target_percent(self.spy, target=0.95, exectype=bt.Order.Market)
+                self.currentPosition = self.spy
+        elif(self.isEOM()):
+            # advance the day by 2 days so we trade on the last day of the month
             #last day of the month, close current position and flip long the other
-            self.order_target_percent(self.tlt, target=0)
-            self.order_target_percent(self.spy, target=0)
-            if self.currentPosition == 'TLT':
-                self.order_target_percent(self.spy, target=1.0)
-            else:
-                self.order_target_percent(self.tlt, target=1.0)
+            self.close(self.currentPosition)
+            #if self.currentPosition == 'TLT':
+            #    self.order_target_percent(self.spy, target=1.0)
+            #else:
+            #    self.order_target_percent(self.tlt, target=1.0)
 
-        self.currentTradingDayOfMonth+=1
+    def isEOM(self):
+        try:
+            date = self.data.datetime.date(2)
+            return date.month != self.currentMonth
+        except:
+            return False
 
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:

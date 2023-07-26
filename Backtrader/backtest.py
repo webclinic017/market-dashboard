@@ -31,7 +31,7 @@ def run_backtest(strategy, tickers, start, end, title):
 
     for ticker in tickers:
         data = yf.download(ticker, start, end)
-        feed = bt.feeds.PandasData(dataname=data)
+        feed = bt.feeds.PandasData(dataname=data, name=ticker)
         cerebro.adddata(feed)
 
     # Set initial portfolio value
