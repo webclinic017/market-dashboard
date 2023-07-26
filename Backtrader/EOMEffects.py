@@ -37,7 +37,8 @@ class EOMEffectsStrategy(bt.Strategy):
             self.num_trading_days = len(trading_days)
         elif self.currentTradingDayOfMonth == 5:
             # close all positions
-            self.close()
+            self.order_target_percent(self.tlt, target=0)
+            self.order_target_percent(self.spy, target=0)
         elif ((self.num_trading_days - self.currentTradingDayOfMonth) == 5):
             spy_returns = (self.spy.close[0] - self.spy.close[-self.currentTradingDayOfMonth]) / self.spy.close[-self.currentTradingDayOfMonth]
             tlt_returns = (self.tlt.close[0] - self.tlt.close[-self.currentTradingDayOfMonth]) / self.tlt.close[-self.currentTradingDayOfMonth]
@@ -51,9 +52,36 @@ class EOMEffectsStrategy(bt.Strategy):
                 self.currentPosition = 'SPY'
         elif((self.num_trading_days - self.currentTradingDayOfMonth) == 2):
             #last day of the month, close current position and flip long the other
-            self.close()
+            self.order_target_percent(self.tlt, target=0)
+            self.order_target_percent(self.spy, target=0)
             if self.currentPosition == 'TLT':
                 self.order_target_percent(self.spy, target=1.0)
             else:
                 self.order_target_percent(self.tlt, target=1.0)
+
+    def notify_order(self, order):
+        if order.status in [order.Submitted, order.Accepted]:
+            # Buy/Sell order submitted/accepted to/by broker - Nothing to do
+            return
+
+        # Check if an order has been completed
+        # Attention: broker could reject order if not enougth cash
+        # self.data.datetime.datetime()
+        if order.status in [order.Completed, order.Canceled, order.Margin]:
+            if order.isbuy():
+                print(
+                    'BUY EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
+                    (order.executed.price,
+                     order.executed.value,
+                     order.executed.comm))
+
+                self.buyprice = order.executed.price
+                self.buycomm = order.executed.comm
+            else:  # Sell
+                print('SELL EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
+                         (order.executed.price,
+                          order.executed.value,
+                          order.executed.comm))
+
+    
 
