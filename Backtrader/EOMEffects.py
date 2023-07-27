@@ -3,11 +3,13 @@ import backtrader as bt
 import exchange_calendars as ec
 from dateutil.relativedelta import relativedelta
 
+# For a month, compare the performance of Stocks vs Bonds.
+# Go long the lagger front running the rebalance into end of month
+# Optionally go long the winner playing mean reversion the first 5 days of the next month
 class EOMEffectsStrategy(bt.Strategy):
     params = (
-        ('rebalance_monthday', 1),  # Rebalance on the 1st day of the month
-        ('allocation_vti', 0.6),    # 60% allocation to VTI
-        ('allocation_tlt', 0.4)     # 40% allocation to TLT
+        ('long_beginning_of_month', True),  # Long Beginning of Month
+        ('front_run_days', 5)
     )
 
     def __init__(self):
@@ -36,7 +38,7 @@ class EOMEffectsStrategy(bt.Strategy):
             # Count the number of trading days in this month
             self.num_trading_days = len(trading_days)
         elif self.currentTradingDayOfMonth == 3:
-            # close all positions
+            # close all positions on day 5.  Back trader executes the trade on the next day to avoid "cheating". 
             if not self.currentPosition is None:
                 self.close(self.currentPosition)
         elif ((self.num_trading_days - self.currentTradingDayOfMonth) == 7):
@@ -54,10 +56,13 @@ class EOMEffectsStrategy(bt.Strategy):
             # advance the day by 2 days so we trade on the last day of the month
             #last day of the month, close current position and flip long the other
             self.close(self.currentPosition)
-            #if self.currentPosition == 'TLT':
-            #    self.order_target_percent(self.spy, target=1.0)
-            #else:
-            #    self.order_target_percent(self.tlt, target=1.0)
+            if self.params.long_beginning_of_month:
+                if self.currentPosition._name == self.tlt._name:
+                    self.order_target_percent(self.spy, target=0.95)
+                    self.currentPosition = self.spy
+                else:
+                    self.order_target_percent(self.tlt, target=0.95)
+                    self.currentPosition = self.tlt
 
     def isEOM(self):
         try:
@@ -66,32 +71,32 @@ class EOMEffectsStrategy(bt.Strategy):
         except:
             return False
 
-    def notify_order(self, order):
-        if order.status in [order.Submitted, order.Accepted]:
+    #def notify_order(self, order):
+        #if order.status in [order.Submitted, order.Accepted]:
             # Buy/Sell order submitted/accepted to/by broker - Nothing to do
-            return
+        #    return
 
         # Check if an order has been completed
         # Attention: broker could reject order if not enougth cash
         # self.data.datetime.datetime()
-        if order.status in [order.Completed, order.Canceled, order.Margin]:
-            bt.num2date(order.executed.dt)
-            if order.isbuy():
-                print(
-                    'BUY, %s Price: %.2f, Cost: %.2f, Date %s' %
-                    (order.data._name,
-                     order.executed.price,
-                     order.executed.value,
-                     bt.num2date(order.executed.dt)))
+        #if order.status in [order.Completed, order.Canceled, order.Margin]:
+        #    bt.num2date(order.executed.dt)
+        #    if order.isbuy():
+        #        print(
+        #            'BUY, %s Price: %.2f, Cost: %.2f, Date %s' %
+        #            (order.data._name,
+        #             order.executed.price,
+        #             order.executed.value,
+        #             bt.num2date(order.executed.dt)))
 
-                self.buyprice = order.executed.price
-                self.buycomm = order.executed.comm
-            else:  # Sell
-                print('SELL, %s Price: %.2f, Cost: %.2f, Date %s' %
-                         (order.data._name,
-                          order.executed.price,
-                          order.executed.value,
-                          bt.num2date(order.executed.dt)))
+        #        self.buyprice = order.executed.price
+        #        self.buycomm = order.executed.comm
+        #    else:  # Sell
+        #        print('SELL, %s Price: %.2f, Cost: %.2f, Date %s' %
+        #                 (order.data._name,
+        #                  order.executed.price,
+        #                  order.executed.value,
+        #                  bt.num2date(order.executed.dt)))
 
     
 

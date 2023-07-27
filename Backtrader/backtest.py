@@ -22,8 +22,8 @@ def annualized_volatility(dailyReturns):
     annualized_volatility = daily_volatility * np.sqrt(252)  # Assuming 252 trading days in a year
     return annualized_volatility
 
-
-def run_backtest(strategy, tickers, start, end, title):
+# returns a tearsheet of backtest performance
+def plot_backtest(strategy, tickers, start, end, title, kwargs):
     cerebro = bt.Cerebro()
 
     startcash = 100000
@@ -47,7 +47,7 @@ def run_backtest(strategy, tickers, start, end, title):
     cerebro.addanalyzer(bt.analyzers.PyFolio, _name='PyFolio')
     cerebro.addanalyzer(bt.analyzers.DrawDown, _name="drawdown")
     cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='TradeAnalyzer')
-    cerebro.addstrategy(strategy)
+    cerebro.addstrategy(strategy, **kwargs)
 
     # Run the backtest
     strats = cerebro.run()
@@ -106,4 +106,49 @@ def run_backtest(strategy, tickers, start, end, title):
     buf.seek(0)
     plt.clf()
 
+    # Get the portfolio positions at the end of the backtest
+    portfolio_positions = cerebro.broker.positions
+
+
+    # Print the final portfolio positions and calculate their values
+    for data, position in portfolio_positions.items():
+        size = position.size
+        price = position.price
+        value = size * price  # Calculate the position value
+
+        print(f"Data Name: {data._name}, Size: {size}, Price: {price:.2f}, Value: {value:.2f}")
+
     return buf
+
+
+# runs the latest positions of the backtest
+def run_backtest(strategy, tickers, start, end, kwargs):
+    cerebro = bt.Cerebro()
+    startcash = 100000
+
+    for ticker in tickers:
+        data = yf.download(ticker, start, end)
+        feed = bt.feeds.PandasData(dataname=data, name=ticker)
+        cerebro.adddata(feed)
+
+    # Set initial portfolio value
+    cerebro.broker.setcash(startcash)
+    cerebro.broker.set_checksubmit(False)
+
+    cerebro.addstrategy(strategy, **kwargs)
+
+    # Run the backtest
+    cerebro.run()
+
+    # Get the portfolio positions at the end of the backtest
+    portfolio_positions = cerebro.broker.positions
+
+    pos = []
+    for data, position in portfolio_positions.items():
+        pos.append({
+            'name': data._name,
+            'size': position.size,
+            'price': position.price
+        })
+
+    return pos

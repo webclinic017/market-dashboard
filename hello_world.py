@@ -20,7 +20,6 @@ from datetime import datetime
 import matplotlib
 
 from RelativeRotGraph import RRG
-from rebalance_effects import rebalance_backtest
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
@@ -211,10 +210,6 @@ def pairsMaster(ticker_1, ticker_2):
                                 ticker_1, ticker_2)
     plt.clf()
     return send_file(buf, mimetype='image/png')
-@app.route('/rebal')
-def rebal():
-    html = rebalance_backtest()
-    return send_file(html)
 
 @app.route('/vixBasis')
 def vix_basis():
@@ -248,7 +243,7 @@ def prices():
     # Combine Date, TLT monthly returns, and SPY monthly returns
     combined_data = []
     for date, tlt_return, spy_return in zip(tlt_monthly_returns.index, tlt_monthly_returns, spy_monthly_returns):
-        data = {'Date': date.strftime('%Y-%m-%d'), 'TLT': tlt_return, 'SPY': spy_return}
+        data = {'Date': date.strftime('%Y-%m-%d'), 'TMF': tlt_return, 'UPRO': spy_return}
         combined_data.append(data)
     
     current_year = datetime.now().year
@@ -294,11 +289,30 @@ def backtestThings():
     buf = Backtrader.backtest.run_backtest(RebalanceStrategy, ['SPY','TLT'], start='2013-01-01', end='2100-01-01', title='60-40 Rebalance SPY, TLT')        
     return send_file(buf, mimetype='image/png')
 
+# need to configure the args and if we want the image or the positons
 @app.route('/backtest/eom')
-def backtestEOM():
-    buf = Backtrader.backtest.run_backtest(EOMEffectsStrategy, ['SPY','TLT'], start='2013-01-01', end='2100-01-01', title='End of Month Effects')        
+@app.route('/backtest/eom/<mode>')
+def backtestEOM(mode="bom"):
+    kwargs = {
+        'long_beginning_of_month': (mode == 'bom')
+    }
+    buf = Backtrader.backtest.plot_backtest(EOMEffectsStrategy, ['SPY','TLT'], start='2013-01-01', end='2100-01-01', title='End of Month Effects', kwargs=kwargs)        
     return send_file(buf, mimetype='image/png')
 
+@app.route('/backtest/execute/eom')
+@app.route('/backtest/execute/eom/<mode>')
+def executeBacktestEOM(mode="bom"):
+    kwargs = {
+        'long_beginning_of_month': (mode == 'bom')
+    }
+    data = Backtrader.backtest.run_backtest(EOMEffectsStrategy, ['SPY','TLT'], start='2013-01-01', end='2100-01-01', kwargs=kwargs)        
+    json_data = json.dumps(data)
+
+    return app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
