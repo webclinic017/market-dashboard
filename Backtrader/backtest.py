@@ -68,10 +68,14 @@ def plot_backtest(strategy, tickers, start, end, title, kwargs):
     returns, positions, transactions, gross_lev = pyfoliolzer.get_pf_items()
     annualized_vol = annualized_volatility(returns)
 
+    stratPlots = cerebro.runningstrats[0].plots()
+    height_ratios = [10,1,5]
+    for plot in stratPlots:
+        height_ratios.append(5)
 
     portfolio_value = returns.cumsum().apply(np.exp) * startcash
     # Visulize the output
-    fig, ax = plt.subplots(3, 1, figsize=[14, 8], gridspec_kw={'height_ratios': [10, 1, 5]})
+    fig, ax = plt.subplots(3+len(stratPlots), 1, figsize=[14, 8], gridspec_kw={'height_ratios': height_ratios})
 
     # portfolio value
     portfolio_value.plot(ax=ax[0], label='Strategy')
@@ -97,6 +101,9 @@ def plot_backtest(strategy, tickers, start, end, title, kwargs):
     ax[2].set_ylabel('Daily Returns')
     ax[2].grid(True)
     ax[2].get_xaxis().label.set_visible(False)
+
+    for index,plot in enumerate(stratPlots):
+        plot(ax[3+index])
 
     fig.subplots_adjust(hspace=0.3, wspace=0.5)
     fig.suptitle(title, fontsize=16)

@@ -71,6 +71,9 @@ class EOMEffectsStrategy(bt.Strategy):
         except:
             return False
 
+    def plots(self):
+        return []
+
     #def notify_order(self, order):
         #if order.status in [order.Submitted, order.Accepted]:
             # Buy/Sell order submitted/accepted to/by broker - Nothing to do

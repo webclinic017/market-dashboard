@@ -1,76 +1,79 @@
-import io
-import yfinance as yf
-from datetime import datetime 
-from datetime import timedelta
-from pandas_datareader import data as pdr
-import pandas as pd
-import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-yf.pdr_override()
 
-def backtest():
+import backtrader as bt
+import math
 
-    end = datetime.today()
-    start = end - timedelta(days=3650)
-
-    r = pdr.get_data_yahoo('^SHORTVOL', start, end)['Close']
-    vix = pdr.get_data_yahoo('^VIX', start, end)['Close']
-    vix3m = pdr.get_data_yahoo('^VIX3M', start, end)['Close']
-    ivts = vix / vix3m
-
-    #generate log returns
-    rs = r.apply(np.log).diff(1)
-
-    values = pd.DataFrame()
-    values['vix'] = vix
-    values['vix3m'] = vix3m
-    values['ivts'] = ivts
-
-    # return 1 for short vol
-    # return 0 for flat
-    # return -1 for long vol 
-    def vixBasisStrat(x):
-        if x['vix3m'] < 15 and x['ivts'] < 0.85:
-            return 1
-        elif x['vix3m'] < 17 and x['ivts'] < 0.9:
-            return 1
-        elif x['vix3m'] < 20 and x['ivts'] < 0.95:
-            return 1
-        elif x['vix3m'] < 25 and x['ivts'] < 1.0:
-            return 1
-        elif x['vix3m'] >= 25 and x['ivts'] < 1.1:
-            return 1
-        elif x['ivts'] > 1.1:
-            return -1
-        return 0
-
-
-    pos = values.apply(vixBasisStrat, axis=1)
-
-    #fig, ax = plt.subplots(nrows=4,ncols=1, figsize=(5.5, 3.5))
-    #r.plot(ax=ax[0], title='^SHORTVOL')
-
-    #ivts.plot(ax=ax[1], title='IVTS')
-    #pos.plot(ax=ax[2], title='Position')
-    
-
-    #shift 1 day to avoid look-ahead bias
-    my_rs = pos.shift(1)*rs
-
-    #calculate returns
-    buf = io.BytesIO()
-    returns = my_rs.cumsum().apply(np.exp)
-    
-    # Performance Output
-    tearsheet = Portfolio.TearSheet.TearsheetStatistics(
-        strategy_equity=returns,
-        benchmark_equity=r,
-        title='Long/Short Leveraged Treasury Bond ETFs'
+# For a month, compare the performance of Stocks vs Bonds.
+# Go long the lagger front running the rebalance into end of month
+# Optionally go long the winner playing mean reversion the first 5 days of the next month
+class VixBasisStrategy(bt.Strategy):
+    params = (
+        ('long_beginning_of_month', True),  # Long Beginning of Month
+        ('front_run_days', 5)
     )
-    tearsheet.plot_results()
 
-    #my_rs.cumsum().apply(np.exp).plot(ax=ax[3], title='Strategy Performance').get_figure().savefig(buf, format='png')
+    def __init__(self):
+        self.shortvol = self.datas[0]
+        self.vix = self.datas[1]
+        self.vix3m = self.datas[1]
+        self.currentPos = 0
+        self.vvol = bt.indicators.StandardDeviation(self.vix, period=60) * math.sqrt(252)
+        self.signal = []
+        
+    def next(self):
+        ivts = self.vix.close[0] / self.vix3m.close[0]
+        position = VixBasisStrategy.vixBasisStrat(self.vix3m.close[0], ivts, self.vvol)
+        self.signal.append(position)
+
+        if position == self.currentPos:
+            return
+        
+        if position == 1:
+             self.order_target_percent(self.shortvol, target=0.75, exectype=bt.Order.Market)
+        elif position == -1:
+            self.order_target_percent(self.shortvol, target=-0.75, exectype=bt.Order.Market)
+        else:
+            self.close(self.shortvol)
+
+    def plot_vvol(self, axis):
+        axis.plot(self.vvol.array)
     
-    return buf
+    def plot_signal(self, axis):
+        axis.plot(self.signal)
+
+    def plots(self):
+        # need to convert these into objects. it takes a matplotlib axis and draws stuff to it
+        return [self.plot_vvol, self.plot_signal]
+
+    @staticmethod
+    def short_hurdle(vix3m):
+        if vix3m < 15:
+            return 0.85
+        elif vix3m < 17:
+            return 0.9
+        elif vix3m < 20:
+            return 0.95
+        elif vix3m < 25:
+            return 1
+        return 1.1
+
+    @staticmethod
+    def vixBasisStrat(vix3m,ivts, vvol):
+        shorthurdle = VixBasisStrategy.short_hurdle(vix3m)
+
+        longThreshold = 1.1
+        if vvol[0] < 20:
+            longThreshold = shorthurdle
+        
+        if ivts < shorthurdle:
+            # long vol
+            return 1
+        elif ivts > longThreshold:
+            #short vol
+            return -1
+        else:
+            return 0
+
+    @staticmethod
+    def tickers():
+        return ['^SHORTVOL', '^VIX', '^VIX3M' ]
+

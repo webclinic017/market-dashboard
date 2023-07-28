@@ -10,6 +10,7 @@ import exchange_calendars as ec
 import Backtrader.backtest
 from Backtrader.RebalanceStrategy import RebalanceStrategy
 from Backtrader.EOMEffects import EOMEffectsStrategy
+from Backtrader.vixbasis import VixBasisStrategy
 
 import json
 
@@ -313,6 +314,14 @@ def executeBacktestEOM(mode="bom"):
         status=200,
         mimetype='application/json'
     )
+
+@app.route('/backtest/vixbasis')
+def backtestVixBasis():
+    kwargs = {
+    }
+    buf = Backtrader.backtest.plot_backtest(VixBasisStrategy, VixBasisStrategy.tickers(), start='2013-01-01', end='2100-01-01', title='VIX Basis', kwargs=kwargs)        
+    return send_file(buf, mimetype='image/png')
+
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
