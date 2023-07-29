@@ -53,7 +53,7 @@ class VixBasisStrategy(bt.Strategy):
             'vix': self.vix.close[0],
             'vix3m': self.vix3m.close[0],
             'vvol': self.vvol[0],
-            'position': self.position
+            'signal': self.signal[0]
         }
 
     @staticmethod
