@@ -322,6 +322,19 @@ def backtestVixBasis():
     buf = Backtrader.backtest.plot_backtest(VixBasisStrategy, VixBasisStrategy.tickers(), start='2013-01-01', end='2100-01-01', title='VIX Basis', kwargs=kwargs)        
     return send_file(buf, mimetype='image/png')
 
+@app.route('/backtest/execute/vixbasis')
+def executeBacktestVixBasis():
+    kwargs = {
+    }
+    data = Backtrader.backtest.run_backtest(VixBasisStrategy, VixBasisStrategy.tickers(), start='2013-01-01', end='2100-01-01', kwargs=kwargs)          
+    json_data = json.dumps(data)
+
+    return app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
+
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))

@@ -75,7 +75,7 @@ def plot_backtest(strategy, tickers, start, end, title, kwargs):
 
     portfolio_value = returns.cumsum().apply(np.exp) * startcash
     # Visulize the output
-    fig, ax = plt.subplots(3+len(stratPlots), 1, figsize=[14, 8], gridspec_kw={'height_ratios': height_ratios})
+    fig, ax = plt.subplots(3+len(stratPlots), 1, figsize=[14, 20], gridspec_kw={'height_ratios': height_ratios})
 
     # portfolio value
     portfolio_value.plot(ax=ax[0], label='Strategy')
@@ -113,18 +113,6 @@ def plot_backtest(strategy, tickers, start, end, title, kwargs):
     buf.seek(0)
     plt.clf()
 
-    # Get the portfolio positions at the end of the backtest
-    portfolio_positions = cerebro.broker.positions
-
-
-    # Print the final portfolio positions and calculate their values
-    for data, position in portfolio_positions.items():
-        size = position.size
-        price = position.price
-        value = size * price  # Calculate the position value
-
-        print(f"Data Name: {data._name}, Size: {size}, Price: {price:.2f}, Value: {value:.2f}")
-
     return buf
 
 
@@ -158,4 +146,5 @@ def run_backtest(strategy, tickers, start, end, kwargs):
             'price': position.price
         })
 
-    return pos
+    customData = cerebro.runningstrats[0].strategyData()
+    return {'positions': pos, 'data': customData }

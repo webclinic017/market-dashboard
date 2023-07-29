@@ -1,4 +1,5 @@
 
+from turtle import position
 import backtrader as bt
 import math
 
@@ -12,10 +13,10 @@ class VixBasisStrategy(bt.Strategy):
     )
 
     def __init__(self):
-        self.shortvol = self.datas[0]
-        self.vix = self.datas[1]
-        self.vix3m = self.datas[1]
-        self.currentPos = 0
+        self.vixy = self.datas[0]
+        self.svxy = self.datas[1]
+        self.vix = self.datas[2]
+        self.vix3m = self.datas[3]
         self.vvol = bt.indicators.StandardDeviation(self.vix, period=60) * math.sqrt(252)
         self.signal = []
         
@@ -23,26 +24,37 @@ class VixBasisStrategy(bt.Strategy):
         ivts = self.vix.close[0] / self.vix3m.close[0]
         position = VixBasisStrategy.vixBasisStrat(self.vix3m.close[0], ivts, self.vvol)
         self.signal.append(position)
-
-        if position == self.currentPos:
-            return
         
         if position == 1:
-             self.order_target_percent(self.shortvol, target=0.75, exectype=bt.Order.Market)
+            self.close(self.svxy)
+            self.order_target_percent(self.vixy, target=0.2, exectype=bt.Order.Market)
         elif position == -1:
-            self.order_target_percent(self.shortvol, target=-0.75, exectype=bt.Order.Market)
+            self.close(self.vixy)
+            self.order_target_percent(self.svxy, target=0.2, exectype=bt.Order.Market)
         else:
-            self.close(self.shortvol)
+            self.close(self.vixy)
+            self.close(self.svxy)
 
     def plot_vvol(self, axis):
         axis.plot(self.vvol.array)
+        axis.set_ylabel('VVOL')
+        # add shaded area for cut off
     
     def plot_signal(self, axis):
         axis.plot(self.signal)
+        axis.set_ylabel('Short Long Vol')
 
     def plots(self):
         # need to convert these into objects. it takes a matplotlib axis and draws stuff to it
         return [self.plot_vvol, self.plot_signal]
+
+    def strategyData(self):
+        return {
+            'vix': self.vix.close[0],
+            'vix3m': self.vix3m.close[0],
+            'vvol': self.vvol[0],
+            'position': self.position
+        }
 
     @staticmethod
     def short_hurdle(vix3m):
@@ -65,15 +77,15 @@ class VixBasisStrategy(bt.Strategy):
             longThreshold = shorthurdle
         
         if ivts < shorthurdle:
-            # long vol
-            return 1
-        elif ivts > longThreshold:
-            #short vol
+            # short vol
             return -1
+        elif ivts > longThreshold:
+            #long vol
+            return 1
         else:
             return 0
 
     @staticmethod
     def tickers():
-        return ['^SHORTVOL', '^VIX', '^VIX3M' ]
+        return ['VIXY', 'SVXY', '^VIX', '^VIX3M' ]
 
