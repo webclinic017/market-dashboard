@@ -11,6 +11,7 @@ import Backtrader.backtest
 from Backtrader.RebalanceStrategy import RebalanceStrategy
 from Backtrader.EOMEffects import EOMEffectsStrategy
 from Backtrader.vixbasis import VixBasisStrategy
+from Backtrader.WindowDressingStrategy import WindowDressingStrategy
 
 import json
 
@@ -327,6 +328,26 @@ def executeBacktestVixBasis():
     kwargs = {
     }
     data = Backtrader.backtest.run_backtest(VixBasisStrategy, VixBasisStrategy.tickers(), start='2013-01-01', end='2100-01-01', kwargs=kwargs)          
+    json_data = json.dumps(data)
+
+    return app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
+
+@app.route('/backtest/windowdressing')
+def backtestWindowDressing():
+    kwargs = {
+    }
+    buf = Backtrader.backtest.plot_backtest(WindowDressingStrategy, WindowDressingStrategy.tickers(), start='2013-01-01', end='2100-01-01', title='VIX Basis', kwargs=kwargs)        
+    return send_file(buf, mimetype='image/png')
+
+@app.route('/backtest/execute/windowdressing')
+def executeBacktestVixBasis():
+    kwargs = {
+    }
+    data = Backtrader.backtest.run_backtest(WindowDressingStrategy, WindowDressingStrategy.tickers(), start='2013-01-01', end='2100-01-01', kwargs=kwargs)          
     json_data = json.dumps(data)
 
     return app.response_class(
