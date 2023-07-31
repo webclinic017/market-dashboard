@@ -307,7 +307,7 @@ def executeBacktestEOM(mode="bom"):
     kwargs = {
         'long_beginning_of_month': (mode == 'bom')
     }
-    data = Backtrader.backtest.run_backtest(EOMEffectsStrategy, ['SPY','TLT'], start='2013-01-01', end='2100-01-01', kwargs=kwargs)        
+    data = Backtrader.backtest.run_backtest(EOMEffectsStrategy, ['SPY','TLT'], start='2023-01-01', end='2100-01-01', kwargs=kwargs)        
     json_data = json.dumps(data)
 
     return app.response_class(
@@ -327,7 +327,7 @@ def backtestVixBasis():
 def executeBacktestVixBasis():
     kwargs = {
     }
-    data = Backtrader.backtest.run_backtest(VixBasisStrategy, VixBasisStrategy.tickers(), start='2013-01-01', end='2100-01-01', kwargs=kwargs)          
+    data = Backtrader.backtest.run_backtest(VixBasisStrategy, VixBasisStrategy.tickers(), start='2023-01-01', end='2100-01-01', kwargs=kwargs)          
     json_data = json.dumps(data)
 
     return app.response_class(
@@ -344,10 +344,10 @@ def backtestWindowDressing():
     return send_file(buf, mimetype='image/png')
 
 @app.route('/backtest/execute/windowdressing')
-def executeBacktestVixBasis():
+def executeWindowDressing():
     kwargs = {
     }
-    data = Backtrader.backtest.run_backtest(WindowDressingStrategy, WindowDressingStrategy.tickers(), start='2013-01-01', end='2100-01-01', kwargs=kwargs)          
+    data = Backtrader.backtest.run_backtest(WindowDressingStrategy, WindowDressingStrategy.tickers(), start='2023-01-01', end='2100-01-01', kwargs=kwargs)          
     json_data = json.dumps(data)
 
     return app.response_class(
