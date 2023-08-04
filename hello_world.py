@@ -34,6 +34,7 @@ import realizedvol
 import dressing
 import volCone
 import pairTrader
+import futuresChart
 
 class ListConverter(BaseConverter):
 
@@ -290,6 +291,7 @@ def prices():
 def backtestThings():
     buf = Backtrader.backtest.run_backtest(RebalanceStrategy, ['SPY','TLT'], start='2013-01-01', end='2100-01-01', title='60-40 Rebalance SPY, TLT')        
     return send_file(buf, mimetype='image/png')
+<<<<<<< Updated upstream
 
 # need to configure the args and if we want the image or the positons
 @app.route('/backtest/eom')
@@ -356,7 +358,20 @@ def executeWindowDressing():
         mimetype='application/json'
     )
 
+=======
+    
+@app.route('/futureschart/<ticker>')
+def futureschart(ticker):
+    plt.style.use('default')
+    buf = futuresChart.chart(ticker)
+    print(type(buf))
+    return send_file(buf, mimetype='image/png')
+    
+>>>>>>> Stashed changes
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
+
+    
