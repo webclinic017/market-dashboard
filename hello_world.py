@@ -34,6 +34,7 @@ import realizedvol
 import dressing
 import volCone
 import pairTrader
+import futuresChart
 
 class ListConverter(BaseConverter):
 
@@ -356,7 +357,20 @@ def executeWindowDressing():
         mimetype='application/json'
     )
 
+=======
+    
+@app.route('/futureschart/<ticker>')
+def futureschart(ticker):
+    plt.style.use('default')
+    buf = futuresChart.chart(ticker)
+    print(type(buf))
+    return send_file(buf, mimetype='image/png')
+    
+>>>>>>> Stashed changes
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
+
+    
