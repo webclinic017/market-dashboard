@@ -7,9 +7,9 @@ from datetime import datetime
 def chart(ticker):
     sym_exists = 0
     ticker_map = [['ES=F', 'es'], ['NQ=F', 'nq'], ['YM=F', 'ym'], ['CL=F', 'cl', 'cum'], ['GC=F', 'gc'],
-                  ['NG=F', 'ng']]
+                  ['NG=F', 'ng'], ['^VIX', 'vx']]
     title_map = ['/ES Futures', '/NQ Futures', '/YM Futures', 'Crude Oil Futures', 'Gold Futures',
-                 'Nat Gas']
+                 'Nat Gas', '/VX Futures']
     for i, d in enumerate(ticker_map):
         if ticker in d:
             ticker = d[0]
@@ -57,4 +57,4 @@ def chart(ticker):
     buf.seek(0)
     return buf
     
-#aa = chart('/ng')
+#aa = chart('vx')
