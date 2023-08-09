@@ -39,6 +39,7 @@ def plot_pairs(spread_l, beta_l, r_sq_l, pval_l, adf_stats_l, zscores_l,
     colors = [['w','w','w','w','w'], ['w','w','w','w','w']]
     
     fig, ax = plt.subplots(3,1)
+    plt.style.use('default')
     fig.suptitle('Pairs trade for '+ticker_1+' and '+ticker_2+'\n'+  \
               'If Z-score < 0: Long '+ticker_1+' and short '+str(beta_s)+' '+ticker_2)
     for i in np.arange(1,3):
