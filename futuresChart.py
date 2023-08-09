@@ -6,10 +6,17 @@ from datetime import datetime
 
 def chart(ticker):
     sym_exists = 0
-    ticker_map = [['ES=F', 'es'], ['NQ=F', 'nq'], ['YM=F', 'ym'], ['CL=F', 'cl', 'cum'], ['GC=F', 'gc'],
-                  ['NG=F', 'ng'], ['^VIX', 'vx']]
+    ticker_map = [['ES=F', 'es'], ['NQ=F', 'nq'], ['YM=F', 'ym'], ['CL=F', 'cl'], ['GC=F', 'gc'],
+                  ['NG=F', 'ng'], ['^VIX', 'vx'], ['CL=F','cum'], ['RTY=F', 'rty'], ['ZB=F', 'zb', '30y'],
+                  ['ZN=F', 'zn', '10y'], ['ZF=F', 'zf', '5y'], ['ZT=F', 'zt', '2y'], ['SI=F', 'si'],
+                  ['PL=F', 'pl'], ['HG=F', 'hg'], ['PA=F', 'pa'], ['HO=F', 'ho'], ['RB=F', 'rb'],
+                  ['ZC=F', 'zc'], ['ZO=F', 'zo'], ['KE=F', 'ke', 'zw'], ['ZR=F', 'zr'], ['ZS=F', 'zs'],
+                  ['HE=F', 'he', 'lh'], ['LE=F', 'le'], ['LBS=F', 'lbs', 'lb'], ['OJ=F', 'oj']]
     title_map = ['/ES Futures', '/NQ Futures', '/YM Futures', 'Crude Oil Futures', 'Gold Futures',
-                 'Nat Gas', '/VX Futures']
+                 'Nat Gas', '/VX Futures', 'Sweet light cum', 'Rusty (Russell 2000)', '30y Bonds',
+                 '10y bonds', '5y bonds', '2y bonds', 'Silver', 'Platinum', 'Copper', 'Palladium',
+                 'Heating Oil', 'Gasoline', 'Corn', 'Oats', 'Wheat', 'Rough rice', 'Soy boys', 'Lean Hogs',
+                 'Cows', 'Lumber', 'Orange Juice']
     for i, d in enumerate(ticker_map):
         if ticker in d:
             ticker = d[0]
@@ -57,4 +64,4 @@ def chart(ticker):
     buf.seek(0)
     return buf
     
-#aa = chart('vx')
+#aa = chart('lh')
