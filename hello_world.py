@@ -358,10 +358,10 @@ def executeWindowDressing():
         mimetype='application/json'
     )
     
-@app.route('/futureschart/<ticker>')
-def futureschart(ticker):
+@app.route('/futureschart/<ticker>/<period>')
+def futureschart(ticker = 'es', period = '5'):
     plt.style.use('default')
-    buf = futuresChart.chart(ticker)
+    buf = futuresChart.chart(ticker, period)
     print(type(buf))
     return send_file(buf, mimetype='image/png')
     
