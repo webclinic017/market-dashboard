@@ -94,4 +94,4 @@ def chart(ticker, period):
     buf.seek(0)
     return buf
     
-aa = chart('dxy', 'dxy')
+# aa = chart('dxy', 'dxy')
