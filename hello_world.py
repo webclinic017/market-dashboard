@@ -35,7 +35,9 @@ import dressing
 import volCone
 import pairTrader
 import futuresChart
+import cot_Table
 import vixBins
+
 
 class ListConverter(BaseConverter):
 
@@ -365,6 +367,12 @@ def futureschart(ticker = 'es', period = '5'):
     buf = futuresChart.chart(ticker, period)
     return send_file(buf, mimetype='image/png')
     
+@app.route('/cotchart/<ticker>')
+def cotchart(ticker = 'es'):
+    plt.style.use('default')
+    buf = cot_Table.callAsset(ticker)
+    return send_file(buf, mimetype='image/png')
+
 @app.route('/vixbins')
 def vixbins():
     plt.style.use('default')
