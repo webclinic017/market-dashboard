@@ -35,6 +35,7 @@ import dressing
 import volCone
 import pairTrader
 import futuresChart
+import cot_Table
 
 class ListConverter(BaseConverter):
 
@@ -362,7 +363,12 @@ def executeWindowDressing():
 def futureschart(ticker = 'es', period = '5'):
     plt.style.use('default')
     buf = futuresChart.chart(ticker, period)
-    print(type(buf))
+    return send_file(buf, mimetype='image/png')
+    
+@app.route('/cotchart/<ticker>')
+def cotchart(ticker = 'es'):
+    plt.style.use('default')
+    buf = cot_Table.callAsset(ticker)
     return send_file(buf, mimetype='image/png')
     
 if __name__ == '__main__':
