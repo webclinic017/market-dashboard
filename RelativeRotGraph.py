@@ -52,7 +52,7 @@ def RRG(tickers, benchmark, start_date, end_date, lookback, lims=[97, 103]):
     
     # Plot the Relative Rotation Graph
     fig, ax = plt.subplots(figsize=(8,8))
-    
+    plt.style.use('default')
     # Plot the last 'lookback' values of rs_ratio and rs_momentum for each ticker as a line
     # Add label and dot at most current point
     for ticker in tickers:

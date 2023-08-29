@@ -35,6 +35,9 @@ import dressing
 import volCone
 import pairTrader
 import futuresChart
+import cot_Table
+import vixBins
+
 
 class ListConverter(BaseConverter):
 
@@ -151,11 +154,11 @@ def realized_vol_term_json(ticker):
 @app.route('/rrg')
 @app.route('/rrg/<rrg_set>')
 def rrg(rrg_set):
-    start_date = '2022-01-01'
+    start_date = (datetime.today()+timedelta(days=-365)).strftime('%Y-%m-%d')
     end_date = datetime.today().strftime('%Y-%m-%d')
     benchmark = 'SPY'
     num_hist = -10
-
+    plt.style.use('default')
     # Define tickers and benchmark
     if rrg_set == '1' or not rrg_set:
         tickers = ['XLP', 'XLE', 'XLF', 'XLRE', 'XLV', 'XLC','XLB','XLI','XLU','XLY','XLK', 'XBI', 'XRT', 'QQQ', 'XHB', 'SMH']
@@ -358,11 +361,22 @@ def executeWindowDressing():
         mimetype='application/json'
     )
     
-@app.route('/futureschart/<ticker>')
-def futureschart(ticker):
+@app.route('/futureschart/<ticker>/<period>')
+def futureschart(ticker = 'es', period = '5'):
     plt.style.use('default')
-    buf = futuresChart.chart(ticker)
-    print(type(buf))
+    buf = futuresChart.chart(ticker, period)
+    return send_file(buf, mimetype='image/png')
+    
+@app.route('/cotchart/<ticker>')
+def cotchart(ticker = 'es'):
+    plt.style.use('default')
+    buf = cot_Table.callAsset(ticker)
+    return send_file(buf, mimetype='image/png')
+
+@app.route('/vixbins')
+def vixbins():
+    plt.style.use('default')
+    buf = vixBins.bins()
     return send_file(buf, mimetype='image/png')
     
 if __name__ == '__main__':

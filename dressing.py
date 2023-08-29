@@ -59,6 +59,7 @@ def dressing(ticker = 'SPY', start_date = (datetime.today()+timedelta(days=-365)
     #max_data[1,i] = np.nanmax(logAdjDiff[trade_dayOfMon == i+1])
   
   fig, ax = plt.subplots()
+  plt.style.use('default')
   plt.bar(avg_data[0,:]-0.2, avg_data[1,:], width=0.4, color='b')
   plt.bar(med_data[0,:]+0.2, med_data[1,:], width=0.4, color='k')
   plt.legend(['Average','Median'])
