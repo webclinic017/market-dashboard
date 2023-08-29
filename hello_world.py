@@ -246,7 +246,7 @@ def prices():
     # Combine Date, TLT monthly returns, and SPY monthly returns
     combined_data = []
     for date, tlt_return, spy_return in zip(tlt_monthly_returns.index, tlt_monthly_returns, spy_monthly_returns):
-        data = {'Date': date.strftime('%Y-%m-%d'), 'TMF': tlt_return, 'UPRO': spy_return}
+        data = {'Date': date.strftime('%Y-%m-%d'), 'TLT': tlt_return, 'SPY': spy_return}
         combined_data.append(data)
     
     current_year = datetime.now().year
